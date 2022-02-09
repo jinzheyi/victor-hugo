@@ -4,8 +4,7 @@ date = "2022-02-09 14:21:52"
 url = "archives/2"
 tags = ["Linux"]
 categories = ["运维","Linux环境部署"]
-featuredImage = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.pconline.com.cn%2Fimages%2Fupload%2Fupc%2Ftx
-%2Fpcdlc%2F2004%2F23%2Fc6%2F204469059_1587610797167_nowater.jpg&refer=http%3A%2F%2Fimg.pconline.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1647003571&t=64a9ada01575a84638ff98480c2076ff"
+featuredImage = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.pconline.com.cn%2Fimages%2Fupload%2Fupc%2Ftx%2Fpcdlc%2F2004%2F23%2Fc6%2F204469059_1587610797167_nowater.jpg&refer=http%3A%2F%2Fimg.pconline.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1647003571&t=64a9ada01575a84638ff98480c2076ff"
 +++
 
 ### 使用解压命令解压 ###

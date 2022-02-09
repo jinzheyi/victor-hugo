@@ -52,13 +52,21 @@ buildFuture = true
         title = ""
         weight = 3
       [[languages.zh-cn.menu.main]]
+        identifier = "categories"
+        pre = "<i class='fas fa-cube'></i> "
+        post = ""
+        name = "分类"
+        url = "/categories/"
+        title = ""
+        weight = 4
+      [[languages.zh-cn.menu.main]]
         identifier = "links"
         pre = "<i class='fas fa-external-link-alt'></i> "
         post = ""
         name = "友链"
         url = "/links/"
         title = ""
-        weight = 4
+        weight = 5
     [languages.zh-cn.params]
       description = "朱述勇的博客"
       keywords = ["朱述勇", "zhushuyong", "zhushuyong"]

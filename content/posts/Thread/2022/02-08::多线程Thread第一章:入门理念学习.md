@@ -4,7 +4,7 @@ date = "2022-02-08 14:21:52"
 url = "archives/1"
 tags = ["Thread"]
 categories = ["后端","Thread多线程学习"]
-featuredImage = "![朱述勇-https://zhushuyong.netlify.app/](http://121.43.32.181:9000/blog/images/20220212/563aeba635eb4d7eba4b3226421adb14.png)"
+featuredImage = "http://121.43.32.181:9000/blog/images/20220212/563aeba635eb4d7eba4b3226421adb14.png"
 +++
 
 ## 进程与线程 ##

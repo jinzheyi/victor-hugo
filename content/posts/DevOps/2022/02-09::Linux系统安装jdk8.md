@@ -4,7 +4,8 @@ date = "2022-02-09 14:21:52"
 url = "archives/2"
 tags = ["Linux"]
 categories = ["运维","Linux环境部署"]
-featuredImage = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.pconline.com.cn%2Fimages%2Fupload%2Fupc%2Ftx%2Fpcdlc%2F2004%2F23%2Fc6%2F204469059_1587610797167_nowater.jpg&refer=http%3A%2F%2Fimg.pconline.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1647003571&t=64a9ada01575a84638ff98480c2076ff"
+featuredImage = ![jdk8.jpeg](http://121.43.32.181:9000/blog/images/20220212/1bc6bd7d4afd4e918abaa7456e5296c5.png)
+
 +++
 
 ### 使用解压命令解压 ###
@@ -36,7 +37,7 @@ export JAVA_PATH=${JAVA_HOME}/bin:${JRE_HOME}/bin
 export PATH=$PATH:${JAVA_PATH}
 ```
 
-![image.png](https://upload-images.jianshu.io/upload_images/7922277-9e22b27f2d76d7fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![配置图](http://121.43.32.181:9000/blog/images/20220212/29ba0de3ae3d450a9d1e08ffaec6a927.png)
 
 Esc --> :wq
 

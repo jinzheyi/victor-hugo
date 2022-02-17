@@ -4,7 +4,7 @@ date = "2022-02-09 14:21:52"
 url = "archives/2"
 tags = ["Linux"]
 categories = ["运维","Linux环境部署"]
-featuredImage = "http://121.43.32.181:9000/blog/images/20220212/1bc6bd7d4afd4e918abaa7456e5296c5.png"
+featuredImage = "![1bc6bd7d4afd4e918abaa7456e5296c5.png](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/9ea3ce466ec04ae6b8a8f809b8c2eabb.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg)"
 
 +++
 
@@ -37,7 +37,7 @@ export JAVA_PATH=${JAVA_HOME}/bin:${JRE_HOME}/bin
 export PATH=$PATH:${JAVA_PATH}
 ```
 
-![配置图](http://121.43.32.181:9000/blog/images/20220212/29ba0de3ae3d450a9d1e08ffaec6a927.png)
+![配置图.png](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/f080ac04a40f4eed86de1951a30f9bb4.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg)
 
 Esc --> :wq
 

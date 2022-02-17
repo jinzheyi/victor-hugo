@@ -4,8 +4,7 @@ date = "2022-02-08 14:21:52"
 url = "archives/1"
 tags = ["Thread"]
 categories = ["后端","Thread多线程学习"]
-featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/158f99d96eff4ff09f6aca1ceeb3df6e.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg
-"
+featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/158f99d96eff4ff09f6aca1ceeb3df6e.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg"
 +++
 
 ## 进程与线程 ##

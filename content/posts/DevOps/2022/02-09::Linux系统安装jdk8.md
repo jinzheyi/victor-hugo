@@ -37,7 +37,7 @@ export JAVA_PATH=${JAVA_HOME}/bin:${JRE_HOME}/bin
 export PATH=$PATH:${JAVA_PATH}
 ```
 
-![配置图.png](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/f080ac04a40f4eed86de1951a30f9bb4.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg)
+![配置图.png](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/f080ac04a40f4eed86de1951a30f9bb4.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
 
 Esc --> :wq
 

@@ -1,7 +1,7 @@
 baseURL = "https://zhushuyong.netlify.app"
 defaultContentLanguage = "zh-cn"
 theme = "LoveIt"
-title = "朱述勇"
+title = "朱述勇|人因为不想做而变得懒惰|来自一枚crud战士的装逼之路"
 enableRobotsTXT = true
 enableGitInfo = false
 enableEmoji = true
@@ -69,7 +69,7 @@ buildFuture = true
         weight = 5
     [languages.zh-cn.params]
       description = "朱述勇的博客"
-      keywords = ["朱述勇", "zhushuyong", "zhushuyong"]
+      keywords = ["朱述勇", "zhushuyong", "zhushuyong", "zsy", "jinzheyi"]
       [languages.zh-cn.params.app]
         title = "朱述勇"
         noFavicon = false

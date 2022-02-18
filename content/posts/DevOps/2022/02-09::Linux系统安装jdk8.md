@@ -4,7 +4,7 @@ date = "2022-02-09 14:21:52"
 url = "archives/2"
 tags = ["Linux"]
 categories = ["运维","Linux环境部署"]
-featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/9ea3ce466ec04ae6b8a8f809b8c2eabb.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg"
+featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/9ea3ce466ec04ae6b8a8f809b8c2eabb.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10"
 
 +++
 

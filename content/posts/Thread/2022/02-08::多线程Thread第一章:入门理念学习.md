@@ -57,77 +57,406 @@ featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217
 * 不需要等待结果返回，就能继续运行就是异步
 
 ```java
-package com.zhushuyong;
-
-import org.openjdk.jmh.annotations.*;
+package com.zhushuyong.day01;
 
 import java.util.Arrays;
 import java.util.concurrent.FutureTask;
 
-@Fork(1)
-@BenchmarkMode(Mode.AverageTime)
-@Warmup(iterations=3)
-@Measurement(iterations=5)
-public class MyBenchmark {
-    static int[] ARRAY = new int[1000_000_00];
-    static {
-        Arrays.fill(ARRAY, 1);
-    }
-    @Benchmark
-    public int c() throws Exception {
-        int[] array = ARRAY;
-        FutureTask<Integer> t1 = new FutureTask<>(()->{
-            int sum = 0;
-            for(int i = 0; i < 250_000_00;i++) {
-                sum += array[0+i];
-            }
-            return sum;
-        });
-        FutureTask<Integer> t2 = new FutureTask<>(()->{
-            int sum = 0;
-            for(int i = 0; i < 250_000_00;i++) {
-                sum += array[250_000_00+i];
-            }
-            return sum;
-        });
-        FutureTask<Integer> t3 = new FutureTask<>(()->{
-            int sum = 0;
-            for(int i = 0; i < 250_000_00;i++) {
-                sum += array[500_000_00+i];
-            }
-            return sum;
-        });
-        FutureTask<Integer> t4 = new FutureTask<>(()->{
-            int sum = 0;
-            for(int i = 0; i < 250_000_00;i++) {
-                sum += array[750_000_00+i];
-            }
-            return sum;
-        });
-        new Thread(t1).start();
-        new Thread(t2).start();
-        new Thread(t3).start();
-        new Thread(t4).start();
-        return t1.get() + t2.get() + t3.get()+ t4.get();
-    }
-    @Benchmark
-    public int d() throws Exception {
-        int[] array = ARRAY;
-        FutureTask<Integer> t1 = new FutureTask<>(()->{
-            int sum = 0;
-            for(int i = 0; i < 1000_000_00;i++) {
-                sum += array[0+i];
-            }
-            return sum;
-        });
-        new Thread(t1).start();
-        return t1.get();
-    }
+/**
+ * 线程的串行与并行的区别
+ * @author zhusy
+ * @since 2022/2/18
+ */
+public class SerialAndParallel {
+
+  public static void main(String[] args) throws Exception {
+    long statTime = System.currentTimeMillis();
+    System.out.println("开始执行时间：" + statTime);
+    //System.out.println(serial());
+    System.out.println(parallel());
+    long endTime = System.currentTimeMillis();
+    System.out.println("结束时间：" + endTime);
+    System.out.println("相差毫秒数：" + (endTime - statTime));
+  }
+
+  /**
+   * 先定义一个int类型数组，空间是一亿的长度
+   */
+  static int[] ARRAY = new int[100000000];
+
+  /**
+   * 静态代码块，在JVM虚拟机加载类的时候就会执行，且只会执行一次
+   */
+  static {
+    //赋值一亿个等于1的值到数组中
+    Arrays.fill(ARRAY, 1);
+  }
+
+  /**
+   * 并行执行一亿个数相加。开启4个线程计算，每个线程计算25000000个数
+   * @return
+   * @throws Exception
+   */
+  public static int parallel() throws Exception {
+    int[] array = ARRAY;
+    FutureTask<Integer> task = new FutureTask<>(()->{
+      int sum = 0;
+      for (int i =0; i< 25000000; i++) {
+        sum += array[i];
+      }
+      return sum;
+    });
+    FutureTask<Integer> task1 = new FutureTask<>(()->{
+      int sum = 0;
+      for (int i=0; i< 25000000; i++) {
+        sum += array[25000000 + i];
+      }
+      return sum;
+    });
+    FutureTask<Integer> task2 = new FutureTask<>(()->{
+      int sum = 0;
+      for (int i=0; i< 25000000; i++) {
+        sum += array[50000000 + i];
+      }
+      return sum;
+    });
+    FutureTask<Integer> task3 = new FutureTask<>(()->{
+      int sum = 0;
+      for (int i=0; i<25000000; i++) {
+        sum += array[75000000 + i];
+      }
+      return sum;
+    });
+    new Thread(task).start();
+    new Thread(task1).start();
+    new Thread(task2).start();
+    new Thread(task3).start();
+    return task.get() + task1.get() + task2.get() + task3.get();
+  }
+  /**
+   * 串行执行一亿个数相加，查看需要花费的时间
+   * @return
+   * @throws Exception
+   */
+  public static int serial() throws Exception {
+    int[] array = ARRAY;
+    FutureTask<Integer> task = new FutureTask<>(()->{
+      int sum = 0;
+      for (int i = 0; i< array.length; i++) {
+        sum += array[0 + i];
+      }
+      return sum;
+    });
+    new Thread(task).start();
+    return task.get();
+  }
+
 }
 ```
-其中 `@BenchmarkMode(Mode.AverageTime)` 表示测试模式（统计测试的平均时间）。
-`@Warmup(iterations=3)`表示热身3次，程序在JVM虚拟机中头一次执行时间会偏长，多次运行后，JVM才能比较准确的运行程序真正需要的时间。
-`@Measurement(iterations=5)`表示进行5轮测试
+其中 `serial` 方法表示串行执行，开启一个线程执行，执行三次后平均执行时间是55毫秒左右。
+`parallel`方法并行执行， 开启4个线程运行一亿个数相加，执行三次后平均执行时间是46毫秒左右。
+
+> 注意：需要在多核CPU才能提高效率，单核仍然是轮流执行
+
+1、单核CPU下，多线程不能实际提高程序运行效率，只是为了能够在不同的任务之间切换，不同的线程轮流使用CPU，不至于一个线程总占用CPU，别的线程没法干活
+2、多核CPU可以并行跑多个线程，但能否提高程序运行效率还是要分情况的
+ - 有些任务，经过精心设计，将任务拆分，并行执行，当然可以提高程序的运行效率。但不是所有额计算任务都能拆分（参考后文的【阿姆达尔定律】）
+ - 也不是所有任务都需要拆分，任务的目的如果不同，谈拆分和效率没啥意义
+3、io操作不占用CPU，只是我们一般拷贝文件使用的是【阻塞io】，这时相当于线程虽然不用CPU，但需要一直等待io结束，没能充分利用线程。所以才有后面的
+【非阻塞io】和【异步io】优化
+
+## 创建和运行线程
+
+### 使用thread
+
+直接定义一个Thread对象参数，使用匿名内部类重写run方法。
+也可以继承thread对象，重写run方法
+
+```java
+package com.zhushuyong.day01;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author zhusy
+ * @since 2022/2/20
+ */
+@Slf4j(topic = "com.zhushuyong")
+public class test1 {
+
+    public static void main(String[] args) {
+
+        Thread thread = new Thread("子线程1"){
+            @Override
+            public void run() {
+                log.info("子线程打印数据");
+            }
+        };
+        thread.start();
+        log.info("主线程打印数据");
+
+    }
+
+}
+```
+main方法本身就是一个线程，是启动项目的主线程，同时也被称为`守护线程`
+
+### 使用Runnable配合Thread
+
+把【线程】和【任务】分开
+* thread代表线程
+* runnable可运行的任务
+
+```java
+package com.zhushuyong.day01;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author zhusy
+ * @since 2022/2/20
+ */
+@Slf4j(topic = "com.zhushuyong")
+public class test2 {
+
+    public static void main(String[] args) {
+
+        //使用匿名内部类的方式重写run方法
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                log.info("这里是可执行的任务代码");
+            }
+        };
+        //传入thread对象的构造方法中
+        Thread thread = new Thread(runnable, "子线程1");
+        thread.start();
+
+        log.info("主线程执行任务代码");
+    }
+
+}
+```
+
+### Thread类与Runnable接口的关系
+
+```java
+package com.zhushuyong.day01;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * @author zhusy
+ * @since 2022/2/20
+ */
+@Slf4j(topic = "com.zhushuyong")
+public class test2 {
+
+    public static void main(String[] args) {
+        //a1方法是直接用thread的匿名内部类重写run方法
+        a1();
+        //a2方法使用runnable的匿名内部类重写run方法
+        a2();
+    }
+    
+    public static void a1() {
+        Thread thread = new Thread(){
+            @Override
+            public void run() {
+                log.info("可执行的任务代码");
+            }
+        };
+        thread.start();
+    }
+
+    public static void a2() {
+
+        //使用匿名内部类的方式重写run方法
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                log.info("这里是可执行的任务代码");
+            }
+        };
+        //传入thread对象的构造方法中
+        Thread thread = new Thread(runnable, "子线程1");
+        thread.start();
+
+        log.info("主线程执行任务代码");
+    }
+
+}
+```
+#### 方法a2的原理
+1、我们查看a2方法中的`Thread thread = new Thread(runnable, "子线程1");`的构造方法源码。
+跟踪第一个Runnable target的`target`参数。进入this方法，再跟进下一个this方法引用中。
+![跟踪第一步构造方法](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/7d0dee9f4e814f55b804cf7561b81188.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+![跟踪第二步构造方法](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/074e14a24ed54613bb7bc67df3568ffa.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+一直找到如下方法：
+```java
+ private Thread(ThreadGroup g, Runnable target, String name,
+                   long stackSize, AccessControlContext acc,
+                   boolean inheritThreadLocals) {
+        if (name == null) {
+            throw new NullPointerException("name cannot be null");
+        }
+
+        this.name = name;
+
+        Thread parent = currentThread();
+        SecurityManager security = System.getSecurityManager();
+        if (g == null) {
+            /* Determine if it's an applet or not */
+
+            /* If there is a security manager, ask the security manager
+               what to do. */
+            if (security != null) {
+                g = security.getThreadGroup();
+            }
+
+            /* If the security manager doesn't have a strong opinion
+               on the matter, use the parent thread group. */
+            if (g == null) {
+                g = parent.getThreadGroup();
+            }
+        }
+
+        /* checkAccess regardless of whether or not threadgroup is
+           explicitly passed in. */
+        g.checkAccess();
+
+        /*
+         * Do we have the required permissions?
+         */
+        if (security != null) {
+            if (isCCLOverridden(getClass())) {
+                security.checkPermission(
+                        SecurityConstants.SUBCLASS_IMPLEMENTATION_PERMISSION);
+            }
+        }
+
+        g.addUnstarted();
+
+        this.group = g;
+        this.daemon = parent.isDaemon();
+        this.priority = parent.getPriority();
+        if (security == null || isCCLOverridden(parent.getClass()))
+            this.contextClassLoader = parent.getContextClassLoader();
+        else
+            this.contextClassLoader = parent.contextClassLoader;
+        this.inheritedAccessControlContext =
+                acc != null ? acc : AccessController.getContext();
+        this.target = target;
+        setPriority(priority);
+        if (inheritThreadLocals && parent.inheritableThreadLocals != null)
+            this.inheritableThreadLocals =
+                ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
+        /* Stash the specified stack size in case the VM cares */
+        this.stackSize = stackSize;
+
+        /* Set thread ID */
+        this.tid = nextThreadID();
+    }
+```
+2、其中`this.target = target;`这一步表示传入的target参数赋值给了thread中的一个`成员变量`。那么这个成员变量在哪用到了？
+依然阅读Thread类源码找到 run 方法。
+```java
+@Override
+    public void run() {
+        if (target != null) {
+            target.run();
+        }
+    }
+```
+3、发现Runnable对象不为空的时候，调用Runnable接口中的run抽象方法。只不过是在Thread中进行调用。
+
+#### 方法a1的原理
+
+创建了一个Thread的子类对象，并重写了父类的run方法。最终以子类的 run方法的代码为主。
+
+> 总结：不管方式1还是方式2本质上走的都是Thread的run方法
+
+### FutureTask配合Thread
+
+```java
+package com.zhushuyong.day01;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+
+/**
+ * @author zhusy
+ * @since 2022/2/20
+ */
+@Slf4j(topic = "com.zhushuyong")
+public class Test3 {
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+//        FutureTask<Integer> futureTask = new FutureTask<>(new Callable<Integer>() {
+//            @Override
+//            public Integer call() throws Exception {
+//                log.info("执行了线程回调中的call方法");
+//                //休眠（阻塞2秒）
+//                Thread.sleep(2*1000);
+//                return 100;
+//            }
+//        });
+        //Java8的lambda的写法
+        FutureTask<Integer> futureTask = new FutureTask<>(()->{
+                log.info("执行了线程回调中的call方法");
+                //休眠（阻塞2秒）
+                Thread.sleep(2*1000);
+                return 100;
+        });
+
+        //因为FutureTask实现了RunnableFuture接口，然后RunnableFuture接口又继承了Runnable接口，所以这里可以直接传入FutureTask参数
+        Thread thread = new Thread(futureTask, "t1");
+        thread.start();
+        log.info("线程执行的结果:{}", futureTask.get());
+    }
+
+}
+```
+- 查看`FutureTask`源码得知FutureTask实现了`RunnableFuture`接口，然后RunnableFuture接口又继承了`Runnable`接口。
+- `Callable`接口跟`Runnable`接口很类似，但是`Callable`接口的`call`方法是有返回值以及能抛出的异常的。
+`Runnable`接口的`run`方法是没有返回值的抽象方法
+
+### 查看进程线程的方法 ###
+
+#### window ####
+
+任务管理器可以查看进程和线程数，也可以用来杀死进程
+- `tasklist`查看进程
+- `taskkill`杀死进程
+
+#### linux ####
+
+- `ps -fe`查看所有进程
+- `kill`杀死进程
+
+#### JAVA
+- `jps`命令查看所有Java进程
+
+```Bash
+zhusy@zhusydeMacBook-Pro day01 % jps
+658 
+2437 Launcher
+2438 test4
+2539 Jps
+zhusy@zhusydeMacBook-Pro day01 % kill 2438
+zhusy@zhusydeMacBook-Pro day01 % 
+```
+![终止运行](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/f9efceba82274864b3deda08f90ab021.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+### 未完待续 。。。。。。
+
+
+
+
+
 
 
 

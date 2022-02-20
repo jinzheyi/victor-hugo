@@ -424,20 +424,20 @@ public class Test3 {
 - `Callable`接口跟`Runnable`接口很类似，但是`Callable`接口的`call`方法是有返回值以及能抛出的异常的。
 `Runnable`接口的`run`方法是没有返回值的抽象方法
 
-### 查看进程线程的方法 ###
+## 查看进程线程的方法 ##
 
-#### window ####
+### window ###
 
 任务管理器可以查看进程和线程数，也可以用来杀死进程
 - `tasklist`查看进程
 - `taskkill`杀死进程
 
-#### linux ####
+### linux ###
 
 - `ps -fe`查看所有进程
 - `kill`杀死进程
 
-#### JAVA
+### JAVA
 - `jps`命令查看所有Java进程
 
 ```Bash
@@ -451,11 +451,22 @@ zhusy@zhusydeMacBook-Pro day01 %
 ```
 ![终止运行](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/f9efceba82274864b3deda08f90ab021.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
 
-### 未完待续 。。。。。。
+## 原理之线程运行
 
+### 栈与栈帧
 
+Java Virtual Machine Stacks(java虚拟机栈)
 
+JVM 中由堆、栈、方法区所组成，其中栈内存是给谁用的呢？答案就是线程，每个线程启动后，虚拟机就会为其分配一块栈内存。
+- 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
+- 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
 
+![栈帧结构代码演示](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/822f00bab5b14d30a85d09fa0a9013af.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+- 上图是一个简单的main方法调用演示栈帧过程，其实main启动时就是一个主线程的启动。
+- 随后会有`method1`和`method2`栈帧。一次方法的调用就会 在栈帧组中多出来一次显示。遵循 `先进后出`的原则。`method2`方法栈帧最后调用，调用结束后从栈帧组中移除，随后是`method1`方法栈帧。
+
+## 未完待续。。。。。。
 
 
 

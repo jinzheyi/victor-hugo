@@ -290,8 +290,11 @@ public class test2 {
 #### 方法a2的原理
 1、我们查看a2方法中的`Thread thread = new Thread(runnable, "子线程1");`的构造方法源码。
 跟踪第一个Runnable target的`target`参数。进入this方法，再跟进下一个this方法引用中。
+
 ![跟踪第一步构造方法](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/7d0dee9f4e814f55b804cf7561b81188.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
 ![跟踪第二步构造方法](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220220/074e14a24ed54613bb7bc67df3568ffa.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
 一直找到如下方法：
 ```java
  private Thread(ThreadGroup g, Runnable target, String name,
@@ -361,7 +364,7 @@ public class test2 {
 2、其中`this.target = target;`这一步表示传入的target参数赋值给了thread中的一个`成员变量`。那么这个成员变量在哪用到了？
 依然阅读Thread类源码找到 run 方法。
 ```java
-@Override
+    @Override
     public void run() {
         if (target != null) {
             target.run();
@@ -466,6 +469,62 @@ JVM 中由堆、栈、方法区所组成，其中栈内存是给谁用的呢？�
 - 上图是一个简单的main方法调用演示栈帧过程，其实main启动时就是一个主线程的启动。
 - 随后会有`method1`和`method2`栈帧。一次方法的调用就会 在栈帧组中多出来一次显示。遵循 `先进后出`的原则。`method2`方法栈帧最后调用，调用结束后从栈帧组中移除，随后是`method1`方法栈帧。
 
+![栈帧调用图解.png](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220221/4af70c95b15341da9054b46d1d2a0e1e.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+1、进入main方法调试后，main栈帧首先进入`栈内存`，args是一个String类型入参数组，在堆内存中会 new 一个String类型数组。对象是在堆内存中
+
+2、随后debug单步调试进入method1，执行到method1方法时。栈内存加入`method1栈帧`。局部变量表中加入x、y参数。紧接着是method2方法进入。
+栈内存加入`method2栈帧`。
+
+3、栈内存中还有个`程序计数器`，用来记录执行到代码的位置。
+
+4、当`method2栈帧`执行完成之后，从栈内存移除（这里用了虚线表示，表示执行完就会移除掉）。演示`先进后出`的原则。
+
+### 线程上下文切换
+
+因为以下一些原因导致CPU不再执行当前的线程，转而执行另一个线程的代码
+
+- 线程的CPU时间片用完
+- 垃圾回收
+- 有更高优先级的线程需要运行
+- 线程自己调用了
+  - `sleep（睡眠、阻塞）`：睡眠、阻塞
+  - `yield`：yield 即 "谦让"，也是 Thread 类的方法。它让掉当前线程 CPU 的时间片，使正在运行中的线程重新变成就绪状态，并重新竞争 CPU 的调度权。它可能会获取到，也有可能被其他线程获取到
+  - `wait`：等待
+  - `join`：主线程等待子线程的终止。也就是说主线程的代码块中，如果碰到了t.join()方法，此时主线程需要等待（阻塞），等待子线程结束了(Waits for this thread to die.),才能继续执行t.join()之后的代码块
+  - `park`
+  - `synchronized`
+  - `lock`
+  
+  等方法。
+
+当Context Switch发生时，需要由操作系统保存当前线程的状态，并恢复另一个线程的状态，Java中对应的概念就是程序计数器（Program Counter Register）,
+他的作用是记住下一条JVM指令的执行地址，是线程私有的
+- 状态包括程序计数器、虚拟机栈中每个栈帧的信息，入局部变量、操作数栈、返回地址等
+- Context Switch 频繁发生会影响性能
+
+## 常见方法
+
+|       方法名        | static |                           功能说明                           |                                                           注意                                                           |
+|:----------------:|:------:|:--------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------:|
+|     start()      |        |                  启动一个新的线程，在新的线程中运行run方法                  |     start()方法只是让当前线程进入就绪状态，也可能立即执行，但这取决于`CPU时间片`是否分给了它。start()方法在新的线程中只能调用一次，如果多次调用会报IllegalThreadStateException异常     |
+|      run()       |        |                       新线程启动后会调用的方法                       |                如果在构造Thread对象时传递了Runnable接口参数，则启动线程时会执行Runnable的run方法。否则不进行其它操作。但也可以构造Thread对象子类来重写run方法                |
+|      join()      |        | 等待线程运行结束。比如有一个子线程耗时长，主线程需要子线程的结果，那么主线程可以使用join来等待子线程运行结束 ||
+|   join(long n)   |        |                     等待线程运行结束，最多等待n毫秒                     ||
+|     getId()      |        |                        获取线程长整型的ID                        |                                                          ID唯一                                                          |
+|    getName()     |        |                          获取线程名                           ||
+| setName(String)  |        |                          修改线程名                           ||
+|  getPriority()   |        |                         获取线程优先级                          ||
+| setPriority(int) |        |                         修改线程优先级                          |                                   java中规定线程优先级是1-10的证书，较大的优先级能提高该线程被CPU调度的几率，但不是绝对的                                    |
+|    getState()    |        |                          获取线程状态                          | Java中线程状态是用6个枚举表示，分别是：`NEW(创建)`、`RUNNABLE(可运行的)`、`BLOCKED(阻塞)`、`WAITING(等待)`、`TIMED_WAITING(带有时间的等待)`、`TERMINATED(结束)` |
+| isInterrupted()  |        |                         判断是否被打断                          |                                                       不会清除`打断标记`                                                       |
+|    isAlive()     |        |                     线程是否存活（还没有运行完毕）                      ||
+|   interrupt()    |        |                           打断线程                           |    如果被打断线程正在sleep、wait、join会导致被打断的线程抛出interruptedException,并清除`打断标记`；如果打断的正在运行的线程，则会设置`打断标记`；park的线程被打断，也会设置`打断标记`     |
+|  interrupted()   | static |                       判断当前线程是否被打断                        |                                                       会清除`打断标记`                                                        |
+| currentThread()  | static |                       获取当前正在执行的线程                        ||
+|  sleep(long n)   | static |             让当前执行的线程休眠n毫秒，休眠时让出CPU的时间片给其它线程              ||
+|     yield()      | static |                   提示线程调度器让出当前线程对CPU的使用                   |                                                       主要是为了测试和调试                                                       |
+  
 ## 未完待续。。。。。。
 
 

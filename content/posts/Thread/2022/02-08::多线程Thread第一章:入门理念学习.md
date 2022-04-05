@@ -1,7 +1,7 @@
 +++
 title = "多线程Thread第一章：入门理念学习"
 date = "2022-02-08 14:21:52"
-url = "archives/1"
+url = "archives/thread/1"
 tags = ["Thread"]
 categories = ["后端","Thread多线程学习"]
 featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220217/158f99d96eff4ff09f6aca1ceeb3df6e.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10"

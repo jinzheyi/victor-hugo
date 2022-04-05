@@ -1,7 +1,7 @@
 +++
 title = "多线程Thread第二章：常用方法理解与实践"
 date = "2022-03-02 23:21:52"
-url = "archives/2"
+url = "archives/thread/2"
 tags = ["Thread"]
 categories = ["后端","Thread多线程学习"]
 featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220405/5948737d287244259ae370d2bbbfe262.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10"

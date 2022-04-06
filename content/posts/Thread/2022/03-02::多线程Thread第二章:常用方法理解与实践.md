@@ -290,3 +290,79 @@ log.debug("运行结束4...");
 - `BLOCKED` ， `WAITING` ， `TIMED_WAITING` 都是 Java API 层面对【阻塞状态】的细分，后面会在状态转换一节
   详述
 - `TERMINATED` 当线程代码运行结束
+
+### 小王烧水习题
+
+想泡壶茶喝。当时的情况是：开水没有；水壶要洗，茶壶、茶杯要洗；火已生了，茶叶也有了。
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220406/de2371f1212942d993d456522ef9fffc.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+```java
+package com.zhushuyong.day01;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ *
+ * @author zhusy
+ * @since 2022/4/6
+ */
+@Slf4j
+public class OverallPlan {
+
+    public static void main(String[] args) {
+        OverallPlan overallPlan = new OverallPlan();
+        overallPlan.test1();
+    }
+
+    private void test1() {
+        Thread t1 = new Thread(()->{
+            log.info("洗水壶1秒钟");
+            sleep(1);
+            log.info("烧开水10秒钟");
+            sleep(10);
+        }, "烧水的老王");
+        Thread t2 = new Thread(()->{
+            log.info("洗茶壶1秒钟");
+            sleep(1);
+            log.info("洗茶杯2秒钟");
+            sleep(2);
+            log.info("拿茶叶1秒钟");
+            sleep(1);
+            try {
+                t1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.info("泡茶1秒钟");
+            sleep(1);
+        }, "做杂事的小王");
+        t1.start();
+        t2.start();
+    }
+
+    private void sleep(int time) {
+        try {
+            Thread.sleep(time * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+```
+
+输出
+```
+/Library/Java/JavaVirtualMachines/jdk-17.0.2.jdk/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA.app/Contents/lib/idea_rt.jar=55995:/Applications/IntelliJ IDEA.app/Contents/bin -Dfile.encoding=UTF-8 -classpath /Users/zhusy/IdeaProjects/hello-java/thread/target/classes:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-databind/2.10.0/jackson-databind-2.10.0.jar:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-annotations/2.10.0/jackson-annotations-2.10.0.jar:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-core/2.10.0/jackson-core-2.10.0.jar:/usr/local/maven-repository/org/springframework/spring-context/5.2.0.RELEASE/spring-context-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-aop/5.2.0.RELEASE/spring-aop-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-beans/5.2.0.RELEASE/spring-beans-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-core/5.2.0.RELEASE/spring-core-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-jcl/5.2.0.RELEASE/spring-jcl-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-expression/5.2.0.RELEASE/spring-expression-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-webmvc/5.2.0.RELEASE/spring-webmvc-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-web/5.2.0.RELEASE/spring-web-5.2.0.RELEASE.jar:/usr/local/maven-repository/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar:/usr/local/maven-repository/ch/qos/logback/logback-core/1.2.3/logback-core-1.2.3.jar:/usr/local/maven-repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar:/usr/local/maven-repository/mysql/mysql-connector-java/5.1.48/mysql-connector-java-5.1.48.jar:/usr/local/maven-repository/org/projectlombok/lombok/1.18.22/lombok-1.18.22.jar com.zhushuyong.day01.OverallPlan
+22:00:03.123 [做杂事的小王] INFO com.zhushuyong.day01.OverallPlan - 洗茶壶1秒钟
+22:00:03.124 [烧水的老王] INFO com.zhushuyong.day01.OverallPlan - 洗水壶1秒钟
+22:00:04.130 [烧水的老王] INFO com.zhushuyong.day01.OverallPlan - 烧开水10秒钟
+22:00:04.130 [做杂事的小王] INFO com.zhushuyong.day01.OverallPlan - 洗茶杯2秒钟
+22:00:06.135 [做杂事的小王] INFO com.zhushuyong.day01.OverallPlan - 拿茶叶1秒钟
+22:00:14.135 [做杂事的小王] INFO com.zhushuyong.day01.OverallPlan - 泡茶1秒钟
+
+Process finished with exit code 0
+```
+
+**这里重点其实就是用到了`join`的特性，只有当`t1.join();`运行完成后，泡茶才会往下继续走**

@@ -371,6 +371,222 @@ public static void main(String[] args) {
     - 如果该对象没有逃离方法的作用访问，它是线程安全的
     - 如果该对象逃离了方法的作用范围，需要考虑线程安全
 
+### 局部变量线程安全分析
+
+线程调用方法时，局部变量会在每个线程的栈帧内存中被创建多份，因此不存在共享
+
+局部变量的引用稍有不同
+
+```java
+class ThreadUnsafe {
+    ArrayList<String> list = new ArrayList<>();
+    public void method1(int loopNumber) {
+        for (int i = 0; i < loopNumber; i++) {
+            // { 临界区, 会产生竞态条件
+            method2();
+            method3();
+            // } 临界区
+         }
+     }
+    private void method2() {
+        list.add("1");
+     }
+    private void method3() {
+        list.remove(0);
+     }
+}
+
+
+static final int THREAD_NUMBER = 2;
+static final int LOOP_NUMBER = 200;
+public static void main(String[] args) {
+    ThreadUnsafe test = new ThreadUnsafe();
+    for (int i = 0; i < THREAD_NUMBER; i++) {
+        new Thread(() -> {
+            test.method1(LOOP_NUMBER);
+         }, "Thread" + i).start();
+     }
+}
+```
+
+其中一种情况是，如果线程2还未add，线程1 remove就会报错：
+```
+Exception in thread "Thread1" java.lang.IndexOutOfBoundsException: Index: 0, Size: 0 
+ at java.util.ArrayList.rangeCheck(ArrayList.java:657) 
+ at java.util.ArrayList.remove(ArrayList.java:496) 
+ at cn.itcast.n6.ThreadUnsafe.method3(TestThreadSafe.java:35) 
+ at cn.itcast.n6.ThreadUnsafe.method1(TestThreadSafe.java:26) 
+ at cn.itcast.n6.TestThreadSafe.lambda$main$0(TestThreadSafe.java:14) 
+ at java.lang.Thread.run(Thread.java:748)
+```
+
+分析：
+
+- 无论哪个线程中的 method2 引用的都是同一个对象中的 list 成员变量
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/560aef4f3e2c44bab64e48e99f551757.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+
+解决方法：将list对象修改为局部变量
+
+- list是局部变量，每个线程调用时会创建不同的实例，没有共享
+- 而method2 的参数是从 method1 中传递过来的，与 method1 中引用同一个对象
+- method3 的参数分析与 method2 相同
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/afca2d41c61241b99c2ddf3822625785.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+方法访问修饰符带来的思考，如果吧 method2 和 method3 的方法修改为 public 会不会代理线程安全问题？
+
+- 情况1：有其它线程调用 method2 和 method3
+- 情况2：在 情况1 的基础上，为 ThreadSafe 类添加子类，子类覆盖 method2 或 method3 方法，即
+
+```java
+package com.zhushuyong.day01;
+
+import java.util.ArrayList;
+
+/**
+ * @author zhusy
+ * @since 2022/4/17
+ */
+public abstract class ThreadSafe {
+
+  static final int THREAD_NUMBER = 2;
+  static final int LOOP_NUMBER = 300;
+  public static void main(String[] args) {
+    ThreadSafeSubClass test = new ThreadSafeSubClass();
+    for (int i = 0; i < THREAD_NUMBER; i++) {
+      new Thread(() -> {
+        test.method1(LOOP_NUMBER);
+      }, "Thread" + i).start();
+    }
+  }
+
+  public final void method1(int loopNumber) {
+    ArrayList<String> list = new ArrayList<>();
+    for (int i = 0; i < loopNumber; i++) {
+      method2(list);
+      method3(list);
+    }
+  }
+
+  public void method2(ArrayList<String> list){
+    list.add("1");
+  }
+
+  public void method3(ArrayList<String> list) {
+    list.remove(0);
+  }
+
+}
+
+class ThreadSafeSubClass extends ThreadSafe {
+
+  @Override
+  public void method3(ArrayList<String> list) {
+    new Thread(()->{
+      list.remove(0);
+    }).start();
+  }
+
+}
+```
+
+```
+/Library/Java/JavaVirtualMachines/jdk-17.0.2.jdk/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA.app/Contents/lib/idea_rt.jar=58084:/Applications/IntelliJ IDEA.app/Contents/bin -Dfile.encoding=UTF-8 -classpath /Users/zhusy/IdeaProjects/hello-java/thread/target/classes:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-databind/2.10.0/jackson-databind-2.10.0.jar:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-annotations/2.10.0/jackson-annotations-2.10.0.jar:/usr/local/maven-repository/com/fasterxml/jackson/core/jackson-core/2.10.0/jackson-core-2.10.0.jar:/usr/local/maven-repository/org/springframework/spring-context/5.2.0.RELEASE/spring-context-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-aop/5.2.0.RELEASE/spring-aop-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-beans/5.2.0.RELEASE/spring-beans-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-core/5.2.0.RELEASE/spring-core-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-jcl/5.2.0.RELEASE/spring-jcl-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-expression/5.2.0.RELEASE/spring-expression-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-webmvc/5.2.0.RELEASE/spring-webmvc-5.2.0.RELEASE.jar:/usr/local/maven-repository/org/springframework/spring-web/5.2.0.RELEASE/spring-web-5.2.0.RELEASE.jar:/usr/local/maven-repository/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar:/usr/local/maven-repository/ch/qos/logback/logback-core/1.2.3/logback-core-1.2.3.jar:/usr/local/maven-repository/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar:/usr/local/maven-repository/mysql/mysql-connector-java/5.1.48/mysql-connector-java-5.1.48.jar:/usr/local/maven-repository/org/projectlombok/lombok/1.18.22/lombok-1.18.22.jar com.zhushuyong.day01.ThreadSafe
+Exception in thread "Thread-599" Exception in thread "Thread-589" java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:266)
+	at java.base/java.util.Objects.checkIndex(Objects.java:359)
+	at java.base/java.util.ArrayList.remove(ArrayList.java:504)
+	at com.zhushuyong.day01.ThreadSafeSubClass.lambda$method3$0(ThreadSafe.java:45)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64)
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70)
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:266)
+	at java.base/java.util.Objects.checkIndex(Objects.java:359)
+	at java.base/java.util.ArrayList.remove(ArrayList.java:504)
+	at com.zhushuyong.day01.ThreadSafeSubClass.lambda$method3$0(ThreadSafe.java:45)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+
+Process finished with exit code 0
+```
+
+> 从这个例子可以看出 private 或 final 提供【安全】的意义所在，请体会开闭原则中的【闭】
+
+
+### 常见线程安全类
+
+- String
+- Integer
+- StringBuffer(操作字符串类)
+- Random(随机数)
+- Vector(集合)
+- Hashtable(操作map)
+- java.util.concurrent包下的类
+
+`**这里说他们是线程安全的是指，多个线程调用他们同一个实例的某个方法时，是线程安全的，也可以理解为**`
+
+```java
+Hashtable hashtable = new Hashtable();
+Thread t1 = new Thread(()->{
+    hashtable.put("key1", "value1");
+});
+
+Thread t2 = new Thread(()->{
+    hashtable.put("key2", "value2");
+});
+```
+
+- 通过查看源码知道他们的每个方法时原子的
+- 
+```java
+    public synchronized V put(K key, V value) {
+        // Make sure the value is not null
+        if (value == null) {
+            throw new NullPointerException();
+        }
+
+        // Makes sure the key is not already in the hashtable.
+        Entry<?,?> tab[] = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        @SuppressWarnings("unchecked")
+        Entry<K,V> entry = (Entry<K,V>)tab[index];
+        for(; entry != null ; entry = entry.next) {
+            if ((entry.hash == hash) && entry.key.equals(key)) {
+                V old = entry.value;
+                entry.value = value;
+                return old;
+            }
+        }
+
+        addEntry(hash, key, value, index);
+        return null;
+    }
+```
+
+> 但**注意**他们多个方法的组合不是原子的[非线程安全]
+
+```java
+Hashtable table = new Hashtable();
+// 线程1，线程2
+if( table.get("key") == null) {
+table.put("key", value);
+}
+```
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/17146cdd47504ce9afb5a09e9ed6f5d6.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+
+
+
+
+
+
+
 
 
 

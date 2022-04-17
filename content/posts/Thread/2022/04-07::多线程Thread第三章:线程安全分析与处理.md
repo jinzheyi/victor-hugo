@@ -7,12 +7,12 @@ categories = ["后端","Thread多线程学习"]
 featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/7d34070eaf7a45b1a4dea0f463c3b607.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10"
 +++
 
-# 引用
+## 引用
 
 **线程共享内存模型** 顾名思义就是通过共享内存来实现并发的模型，当多个线程在并发执行中使用共享资源时不对所共享的资源进行约定或特殊处理时就会出现读到脏数据、
 无效的数据等问题；而为了解决共享资源所引起的这些问题，Java中引入了同步(synchronized)、锁(lock)、原子类型(atomic)等这些用于处理共享资源的操作；
 
-# 内存共享模型问题
+## 内存共享模型问题
 
 现在我们看下面的一个例子：
 
@@ -83,7 +83,7 @@ public class ShareModel {
 `其实本质上还是线程CPU时间片用完，发生了上下文切换。当其中一个线程计算到一半的时候时间片恰好用完，这时候上下文切换。另一个
 线程介入，这时候结果就容易出现与预期的不一致偏差`
 
-## 临界区 Critical Section
+### 临界区 Critical Section
 
 - 一个程序运行多个线程本身是没有问题的，出现问题的情况是在多个线程访问**`共享资源`**
 
@@ -102,11 +102,11 @@ count++;  //临界区
 count--;  //临界区
 ```
 
-## 竞态条件 Race Condition
+### 竞态条件 Race Condition
 
 多个线程在临界区内执行，由于代码的`执行序列不同`而导致结果无法预测，称之为发生了`竞态条件`
 
-# Synchronized解决方案
+## Synchronized解决方案
 
 为了避免临界区的竞态条件发生，有多种手段可以达到目的。
 
@@ -123,7 +123,7 @@ count--;  //临界区
 - 互斥是保证临界区的竞态条件发生，同一时刻只能有一个线程执行临界区的代码
 - 同步是由于线程执行的先后，顺序不同，需要一个线程等待其它线程运行到某个点
 
-## synchronized的语法
+### synchronized的语法
 
 **语法**
 
@@ -191,7 +191,7 @@ synchronized 实际是用对象锁保证了`临界区`内代码的原子性，�
 
 `类只有一个，new出来的实例可以有多个。类对象在内存中只有一份，是单例。类对象!=new出来的实例对象`
 
-## 所谓的“线程八锁”
+### 所谓的“线程八锁”
 
 其实就是考察 synchronized 锁住的是哪个对象
 
@@ -353,7 +353,7 @@ public static void main(String[] args) {
 }
 ```
 
-# 变量的线程安全分析
+## 变量的线程安全分析
 
 - **成员变量和静态变量是否线程安全**
 

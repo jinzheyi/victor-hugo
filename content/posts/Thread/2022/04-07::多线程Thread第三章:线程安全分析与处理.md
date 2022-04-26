@@ -581,11 +581,182 @@ table.put("key", value);
 ![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/17146cdd47504ce9afb5a09e9ed6f5d6.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
 
 
+### 不可变类线程安全性
+
+String、 Integer等都是不可变类，因为其内部的状态不可以变化，因此他们的方法都是线程安全的。
+
+这里来分析 String 的substring的执行过程：
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/1e1b24ba36aa4fc0b0bdfedb03595a15.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/f12beeb620ee4a43ae37f7d5ff5f8ead.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220417/9c11255f1b8b47f39f3782a5afd9ac2c.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
 
 
+## Monitor原理
+
+Monitor 被翻译为 **监视器** 或 **管程**
+
+每个Java对象都可以关联一个Monitor对象，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的 Mark Word 中就被设置指向 Monitor 对象
+的指针
+
+Monitor 结构如下
+
+![](https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220426/1bceda941f01470f911519b8f74a0082.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10)
+
+- 刚开始 Monitor 中 Owner 为 null
+- 当 Thread-2 执行 synchronized(obj)就会将 Monitor 的所有者 Owner 置为 Thread-2, Monitor 中只能有一个 Owner
+- 在 Thread-2 上锁的过程中，如果 Thread-3，Thread-4，Thread-5 也来执行 synchronized(obj)，就会进入
+  EntryList BLOCKED
+- Thread-2 执行完同步代码快的内容，然后唤醒 entryList 中等待的线程来竞争锁，竞争的时候是非公平的
+- 图中WaitSet 中的 Thread-0, Thread-1 是之前获得过锁，但条件不满足进入 `waiting` 状态的线程
 
 
+## wait(等待) notify(唤醒)
 
+- `Owner(所有者)`线程发现条件不满足，调用 `wait` 方法，即可进入 `waitSet` 变为 `waiting` 状态
+- `blocked`和`waiting`的线程都处于阻塞状态，不占用 CPU 时间片
+- `blocked` 线程会在 `Owner(所有者)` 线程释放锁时唤醒
+- `waiting` 线程会在 `Owner(所有者)` 线程调用 `notify` 或者 `notifyAll` 时唤醒，但唤醒后并不意味着立刻获得锁，仍需进入
+   `等待队列` 重新竞争
+
+### API 介绍
+
+- `obj.wait()`让进入 object 监视器的线程到 waitSet 等待
+- `obj.notify()` 在 object 上正在 waitSet 等待的线程中`挑一个唤醒`
+- `obj.notifyAll()` 让 object 上正在 waitSet 等待的线程全部唤醒
+
+**`它们都是线程之间进行协作的手段，都属于 Object 对象的方法，必须获得此对象的锁，才能调用这几个方法`**
+
+```java
+final static Object obj = new Object();
+    public static void main(String[] args) {
+        new Thread(() -> {
+            synchronized (obj) {
+                log.debug("执行....");
+                try {
+                    obj.wait(); // 让线程在obj上一直等待下去
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                log.debug("其它代码....");
+            }
+        }).start();
+        new Thread(() -> {
+            synchronized (obj) {
+                log.debug("执行....");
+                try {
+                    obj.wait(); // 让线程在obj上一直等待下去
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                log.debug("其它代码....");
+            }
+        }).start();
+        // 主线程两秒后执行
+        sleep(2);
+        log.debug("唤醒 obj 上其它线程");
+        synchronized (obj) {
+            obj.notify(); // 唤醒obj上一个线程
+            // obj.notifyAll(); // 唤醒obj上所有等待线程
+        }
+    }
+```
+
+notify 的一种结果
+
+```
+20:00:53.096 [Thread-0] c.TestWaitNotify - 执行.... 
+20:00:53.099 [Thread-1] c.TestWaitNotify - 执行.... 
+20:00:55.096 [main] c.TestWaitNotify - 唤醒 obj 上其它线程
+20:00:55.096 [Thread-0] c.TestWaitNotify - 其它代码....
+```
+
+notifyAll 的结果
+
+```
+19:58:15.457 [Thread-0] c.TestWaitNotify - 执行.... 
+19:58:15.460 [Thread-1] c.TestWaitNotify - 执行.... 
+19:58:17.456 [main] c.TestWaitNotify - 唤醒 obj 上其它线程
+19:58:17.456 [Thread-1] c.TestWaitNotify - 其它代码.... 
+19:58:17.456 [Thread-0] c.TestWaitNotify - 其它代码....
+```
+
+`wait()` 方法会释放对象的锁，进入 `WaitSet(等待队列)` 等待区，从而让其他线程就机会获取对象的锁。无限制等待，直到 notify 为止
+
+`wait(long n)` 有时限的等待, 到 n 毫秒后结束等待，或是被 notify
+
+### sleep(long n) 和 wait(long n) 的区别
+
+- sleep 是 Thread 的方法，而 wait 是 Object 的方法
+- sleep 不需要强制和synchronized 配合使用， 但 wait 需要和 synchronized 一起用
+- sleep 在睡眠的同时，不会释放对象锁。但是 wait 在等待的时候会释放对象锁
+- 它们的状态都是 timed_waiting(有时间的等待)
+
+```java
+new Thread(() -> {
+    synchronized (room) {
+        log.debug("有烟没？[{}]", hasCigarette);
+        while (!hasCigarette) {
+            log.debug("没烟，先歇会！");
+            try {
+                room.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        log.debug("有烟没？[{}]", hasCigarette);
+        if (hasCigarette) {
+            log.debug("可以开始干活了");
+        } else {
+            log.debug("没干成活...");
+        }
+    }
+}, "小南").start();
+
+new Thread(() -> {
+    synchronized (room) {
+        Thread thread = Thread.currentThread();
+        log.debug("外卖送到没？[{}]", hasTakeout);
+        if (!hasTakeout) {
+            log.debug("没外卖，先歇会！");
+            try {
+                room.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        log.debug("外卖送到没？[{}]", hasTakeout);
+        if (hasTakeout) {
+            log.debug("可以开始干活了");
+        } else {
+            log.debug("没干成活...");
+        }
+    }
+}, "小女").start();
+sleep(1);
+new Thread(() -> {
+    synchronized (room) {
+        hasTakeout = true;
+        log.debug("外卖到了噢！");
+        room.notifyAll();
+    }
+}, "送外卖的").start();
+```
+
+```java
+synchronized(lock) {
+    while(条件不成立) {
+      lock.wait();
+    }
+    // 干活
+}
+//另一个线程
+synchronized(lock) {
+    lock.notifyAll();
+}
+```
 
 
 

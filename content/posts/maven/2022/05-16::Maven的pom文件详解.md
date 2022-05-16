@@ -4,7 +4,7 @@ date = "2022-05-16 15:38:52"
 url = "archives/maven/pom/1"
 tags = ["maven","pom"]
 categories = ["后端","maven","pom"]
-featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220516/20ea7a2cda9a41e5bc8fd9f47db091b1.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,color_ff0021,size_18,x_10,y_10"
+featuredImage = "https://zhushuyong.oss-cn-hangzhou.aliyuncs.com/images/20220516/20ea7a2cda9a41e5bc8fd9f47db091b1.png?x-oss-process=image/auto-orient,1/interlace,1/quality,q_50/format,jpg/watermark,text_5pyx6L-w5YuHLXpodXNodXlvbmc,color_ff0021,size_18,x_10,y_10"
 +++
 
 ## 附件1：POM文件总体配置说明
